@@ -1,77 +1,80 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wifi, WifiOff } from 'lucide-react';
+
 // Service Worker registration and offline support
 export function registerServiceWorker() {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
-        console.log('SW registered: ', registration)
+        console.log('SW registered: ', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError)
-      })
+        console.log('SW registration failed: ', registrationError);
+      });
   }
 }
 
 // Check if user is online
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(true)
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
-  return isOnline
+  return isOnline;
 }
 
 // Offline notification component
-import { useState, useEffect } from 'react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Wifi, WifiOff } from 'lucide-react'
-
 export function OfflineNotification() {
-  const isOnline = useOnlineStatus()
-  const [showOfflineMessage, setShowOfflineMessage] = useState(false)
+  const isOnline = useOnlineStatus();
+  const [showOfflineMessage, setShowOfflineMessage] = useState(false);
 
   useEffect(() => {
     if (!isOnline) {
-      setShowOfflineMessage(true)
+      setShowOfflineMessage(true);
     } else {
       // Hide after coming back online
-      const timer = setTimeout(() => setShowOfflineMessage(false), 3000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setShowOfflineMessage(false), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [isOnline])
+  }, [isOnline]);
 
-  if (!showOfflineMessage) return null
+  if (!showOfflineMessage) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-      <Alert className={`${
-        isOnline 
-          ? 'bg-green-500/10 border-green-500/20 text-green-400' 
-          : 'bg-red-500/10 border-red-500/20 text-red-400'
-      }`}>
+      <Alert
+        className={
+          isOnline
+            ? 'bg-green-500/10 border-green-500/20 text-green-400'
+            : 'bg-red-500/10 border-red-500/20 text-red-400'
+        }
+      >
         <div className="flex items-center">
           {isOnline ? <Wifi size={16} /> : <WifiOff size={16} />}
           <AlertDescription className="ml-2">
-            {isOnline 
-              ? 'Connexion rétablie !' 
-              : 'Mode hors ligne - Certaines fonctionnalités peuvent être limitées'
-            }
+            {isOnline
+              ? 'Connexion rétablie !'
+              : 'Mode hors ligne - Certaines fonctionnalités peuvent être limitées'}
           </AlertDescription>
         </div>
       </Alert>
     </div>
-  )
+  );
 }
 
 // Cache management
