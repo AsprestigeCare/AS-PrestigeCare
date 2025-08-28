@@ -34,20 +34,23 @@ export default function HomePage() {
     {
       name: "Marie D.",
       rating: 5,
-      comment: "Service impeccable ! Mon véhicule n'avait jamais été aussi propre. L'équipe est très professionnelle.",
-      location: "Boulogne-Billancourt"
+      comment:
+        "Service impeccable ! Mon véhicule n'avait jamais été aussi propre. L'équipe est très professionnelle.",
+      location: "Boulogne-Billancourt",
     },
     {
       name: "Jean-Pierre M.",
       rating: 5,
-      comment: "Très pratique de pouvoir faire nettoyer sa voiture à domicile. Résultat parfait, je recommande vivement.",
-      location: "Saint-Maur-des-Fossés" 
+      comment:
+        "Très pratique de pouvoir faire nettoyer sa voiture à domicile. Résultat parfait, je recommande vivement.",
+      location: "Saint-Maur-des-Fossés",
     },
     {
       name: "Sophie L.",
       rating: 5,
-      comment: "Approche écologique et résultat professionnel. Parfait pour les familles soucieuses de l'environnement.",
-      location: "Vincennes"
+      comment:
+        "Approche écologique et résultat professionnel. Parfait pour les familles soucieuses de l'environnement.",
+      location: "Vincennes",
     }
   ]
 
