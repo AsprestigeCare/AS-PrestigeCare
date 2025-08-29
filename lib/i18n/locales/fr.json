@@ -1,0 +1,73 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler", 
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "confirm": "Confirmer",
+    "phone": "Téléphone",
+    "email": "Email", 
+    "address": "Adresse",
+    "price": "Prix",
+    "date": "Date",
+    "time": "Heure"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "book": "Réserver", 
+    "subscriptions": "Abonnements",
+    "process": "Rituel",
+    "gallery": "Galerie",
+    "business": "Entreprises",
+    "contact": "Contact"
+  },
+  "booking": {
+    "title": "Réserver votre service",
+    "step_info": "Vos informations",
+    "step_service": "Choix du service", 
+    "step_schedule": "Date et heure",
+    "step_confirm": "Confirmation",
+    "customer_info": "Informations client",
+    "name": "Nom complet",
+    "phone_number": "Numéro de téléphone",
+    "intervention_address": "Adresse d'intervention",
+    "postal_code": "Code postal",
+    "city": "Ville",
+    "vehicle_type": "Type de véhicule",
+    "gearbox": "Type de boîte",
+    "automatic": "Automatique (BVA)",
+    "manual": "Manuelle (BVM)",
+    "location_type": "Lieu d'intervention",
+    "private_location": "Emplacement privé autorisé",
+    "public_location": "Voie/parking public", 
+    "hub_location": "Micro-hub AS",
+    "service_selection": "Service souhaité",
+    "convoyage": "Service de convoyage",
+    "no_convoyage": "Pas de convoyage",
+    "convoyage_10km": "≤ 10 km - 29€",
+    "convoyage_20km": "11-20 km - 39€",
+    "date_selection": "Date d'intervention",
+    "time_slot": "Créneau horaire",
+    "notes": "Notes particulières",
+    "total": "Total",
+    "deposit": "Dépôt de garantie",
+    "balance": "Solde à régler sur place"
+  },
+  "services": {
+    "interieur": "Intérieur Premium",
+    "complet": "Extérieur + Intérieur (Complet)",
+    "polish": "Soft Polish + Sealant",
+    "maison": "Canapé 3 places"
+  },
+  "validation": {
+    "required_field": "Ce champ est obligatoire",
+    "invalid_email": "Email invalide",
+    "invalid_phone": "Numéro de téléphone invalide",
+    "exterior_private_only": "Les services extérieurs ne sont pas disponibles sur voie publique",
+    "convoyage_automatic_only": "Le service de convoyage n'est disponible que pour les boîtes automatiques",
+    "zone_restriction": "Les services extérieurs ne sont disponibles que certains jours dans votre zone"
+  }
+}

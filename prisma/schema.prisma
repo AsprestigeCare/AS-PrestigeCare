@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider           = "postgresql"
+  url                = env("DATABASE_URL")
+  shadowDatabaseUrl  = env("SHADOW_DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+  customers     Customer[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Customer {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  phone         String?
+  user          User?         @relation(fields: [userId], references: [id])
+  userId        String?
+  defaultAddress String?
+  stripeCustomerId String? @unique
+  bookings      Booking[]
+  subscriptions Subscription[]
+  reviews       Review[]
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  type        ServiceType
+  durationMin Int
+  isActive    Boolean     @default(true)
+  bookings    Booking[]
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum ServiceType {
+  INTERIEUR
+  EXTERIEUR
+  POLISH
+  MAISON
+  VTC
+}
+
+model Booking {
+  id                String         @id @default(cuid())
+  customer          Customer       @relation(fields: [customerId], references: [id])
+  customerId        String
+  service           Service        @relation(fields: [serviceId], references: [id])
+  serviceId         String
+  date              DateTime
+  startTime         String
+  duration          Int
+  address           String
+  postalCode        String
+  city              String
+  zone              Int?
+  gearbox           GearboxType
+  placeType         PlaceType
+  convoyageKmBand   ConvoyageKmBand?
+  convoyagePrice    Float          @default(0)
+  totalPrice        Float
+  depositPaid       Boolean        @default(false)
+  remainingAmount   Float
+  status            BookingStatus  @default(PENDING)
+  stripeDepositId   String?
+  stripePaymentId   String?
+  notes             String?
+  rescheduleCount   Int            @default(0)
+  rescheduleLimit   Int            @default(1)
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+enum GearboxType {
+  BVA // Automatique
+  BVM // Manuelle
+}
+
+enum PlaceType {
+  PRIVE    // Emplacement privé autorisé
+  PUBLIC   // Voie/parking public
+  HUB      // Micro-hub AS
+}
+
+enum ConvoyageKmBand {
+  KM_0_10   // ≤10 km: 29€
+  KM_11_20  // 11-20 km: 39€
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  customer        Customer           @relation(fields: [customerId], references: [id])
+  customerId      String
+  stripeSubId     String             @unique
+  plan            SubscriptionPlan
+  status          SubscriptionStatus
+  currentPeriodEnd   DateTime
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+enum SubscriptionPlan {
+  VTC_ZEN           // 45€/month
+  ENTRETIEN_MAISON  // 59€/month  
+  SIGNATURE         // 99€/month
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELED
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+  rating     Int      @db.SmallInt
+  comment    String?
+  source     String?  // Google, internal, etc.
+  isPublic   Boolean  @default(true)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  dayOfWeek Int      // 0-6 (Sunday-Saturday)
+  startTime String   // "09:00"
+  endTime   String   // "17:00"
+  zone      Int      // Zone 1-4
+  isActive  Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
