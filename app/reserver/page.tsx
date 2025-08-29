@@ -7,59 +7,26 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { toast } from '@/hooks/use-toast'
-import { CalendarIcon, MapPin, Clock, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
+import { CalendarIcon, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { format, isMonday, isWednesday, isThursday, isFriday, isSameDay, addDays } from 'date-fns'
+import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { 
-  BookingFormData, 
-  validateBookingRules, 
+import {
+  BookingFormData,
+  validateBookingRules,
   calculateTotalPrice,
   getZoneFromPostalCode,
   ZONE_SCHEDULE,
-  SERVICE_PRICES 
+  SERVICES,
+  isExterior,
+  Gearbox,
+  PlaceType
 } from '@/lib/business-logic'
-
-const SERVICES = [
-  {
-    id: 'INTERIEUR_PREMIUM',
-    name: 'Intérieur Premium',
-    price: SERVICE_PRICES.INTERIEUR_PREMIUM,
-    duration: 90,
-    description: 'Nettoyage complet intérieur avec produits biodégradables',
-    locationTypes: ['PRIVE', 'PUBLIC', 'HUB']
-  },
-  {
-    id: 'EXTERIEUR_INTERIEUR_COMPLET',
-    name: 'Extérieur + Intérieur Complet',
-    price: SERVICE_PRICES.EXTERIEUR_INTERIEUR_COMPLET,
-    duration: 180,
-    description: 'Service complet intérieur et extérieur avec cires de protection',
-    locationTypes: ['PRIVE', 'HUB']
-  },
-  {
-    id: 'SOFT_POLISH_SEALANT',
-    name: 'Soft Polish + Sealant',
-    price: SERVICE_PRICES.SOFT_POLISH_SEALANT,
-    duration: 240,
-    description: 'Rénovation et protection longue durée',
-    locationTypes: ['PRIVE', 'HUB']
-  },
-  {
-    id: 'VTC_ZEN_45',
-    name: 'VTC Zen 45min',
-    price: SERVICE_PRICES.VTC_ZEN_45,
-    duration: 45,
-    description: 'Service express pour VTC (abonnés uniquement)',
-    locationTypes: ['PRIVE', 'HUB']
-  }
-]
+import { ServiceCard } from '@/components/booking/ServiceCard'
 
 const TIME_SLOTS = [
   '09:00', '10:00', '11:00', '12:00', 
@@ -108,18 +75,17 @@ export default function ReserverPage() {
 
   // Get available services based on location type
   const getAvailableServices = () => {
-    return SERVICES.filter(service => 
-      service.locationTypes.includes(formData.placeType as any)
-    )
+    if (formData.placeType === 'PUBLIC') {
+      return SERVICES.filter(service => service.id === 'interieur')
+    }
+    return SERVICES
   }
 
   // Get available time slots based on service and zone
   const getAvailableTimeSlots = () => {
     if (!formData.serviceType || !date) return TIME_SLOTS
 
-    const isExteriorService = ['EXTERIEUR_INTERIEUR_COMPLET', 'SOFT_POLISH_SEALANT'].includes(formData.serviceType)
-    
-    if (isExteriorService) {
+    if (isExterior(formData.serviceType)) {
       const zone = getZoneFromPostalCode(formData.postalCode)
       if (zone) {
         const allowedDays = ZONE_SCHEDULE[zone]
@@ -140,8 +106,7 @@ export default function ReserverPage() {
     if (date < today) return true
 
     // If exterior service is selected, check zone restrictions
-    const isExteriorService = ['EXTERIEUR_INTERIEUR_COMPLET', 'SOFT_POLISH_SEALANT'].includes(formData.serviceType)
-    if (isExteriorService && formData.postalCode) {
+    if (isExterior(formData.serviceType) && formData.postalCode) {
       const zone = getZoneFromPostalCode(formData.postalCode)
       if (zone) {
         const allowedDays = ZONE_SCHEDULE[zone]
@@ -342,7 +307,7 @@ export default function ReserverPage() {
                   <Label className="text-white text-lg mb-4 block">Type de boîte *</Label>
                   <RadioGroup 
                     value={formData.gearbox} 
-                    onValueChange={(value) => updateFormData('gearbox', value as 'BVA' | 'BVM')}
+                    onValueChange={(value) => updateFormData('gearbox', value as Gearbox)}
                     className="grid grid-cols-2 gap-4"
                   >
                     <div className="flex items-center space-x-2 bg-white/5 p-4 rounded-lg border border-white/10">
@@ -364,7 +329,7 @@ export default function ReserverPage() {
                   <Label className="text-white text-lg mb-4 block">Lieu d'intervention *</Label>
                   <RadioGroup 
                     value={formData.placeType} 
-                    onValueChange={(value) => updateFormData('placeType', value as any)}
+                    onValueChange={(value) => updateFormData('placeType', value as PlaceType)}
                     className="space-y-3"
                   >
                     <div className="flex items-start space-x-3 bg-white/5 p-4 rounded-lg border border-white/10">
@@ -405,27 +370,18 @@ export default function ReserverPage() {
 
                 <div>
                   <Label className="text-white text-lg mb-4 block">Service souhaité *</Label>
-                  <div className="grid gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {getAvailableServices().map((service) => (
-                      <div key={service.id} className="flex items-start space-x-3 bg-white/5 p-4 rounded-lg border border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
-                           onClick={() => updateFormData('serviceType', service.id)}>
-                        <RadioGroupItem value={service.id} id={service.id} className="text-[#D4AF37] mt-1" />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor={service.id} className="text-white cursor-pointer font-medium">
-                              {service.name}
-                            </Label>
-                            <Badge className="bg-[#D4AF37] text-black">
-                              {service.price}€
-                            </Badge>
-                          </div>
-                          <p className="text-white/70 text-sm mt-1">{service.description}</p>
-                          <div className="flex items-center text-[#D4AF37] text-sm mt-2">
-                            <Clock size={14} className="mr-1" />
-                            {service.duration} min
-                          </div>
-                        </div>
-                      </div>
+                      <ServiceCard
+                        key={service.id}
+                        id={service.id}
+                        title={service.title}
+                        price={service.price}
+                        durationMin={service.durationMin}
+                        type={service.type}
+                        selected={formData.serviceType === service.id}
+                        onSelect={() => updateFormData('serviceType', service.id)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -584,7 +540,7 @@ export default function ReserverPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-white/70">Service :</span>
-                      <span className="text-white">{SERVICES.find(s => s.id === formData.serviceType)?.name}</span>
+                      <span className="text-white">{SERVICES.find(s => s.id === formData.serviceType)?.title}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-white/70">Date et heure :</span>
