@@ -69,9 +69,11 @@ model Customer {
   id            String        @id @default(cuid())
   name          String
   email         String        @unique
-  phone         String
+  phone         String?
   user          User?         @relation(fields: [userId], references: [id])
   userId        String?
+  defaultAddress String?
+  stripeCustomerId String? @unique
   bookings      Booking[]
   subscriptions Subscription[]
   reviews       Review[]
@@ -126,6 +128,8 @@ model Booking {
   stripeDepositId   String?
   stripePaymentId   String?
   notes             String?
+  rescheduleCount   Int            @default(0)
+  rescheduleLimit   Int            @default(1)
   
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -162,7 +166,6 @@ model Subscription {
   stripeSubId     String             @unique
   plan            SubscriptionPlan
   status          SubscriptionStatus
-  currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   
   createdAt       DateTime           @default(now())
@@ -177,9 +180,8 @@ enum SubscriptionPlan {
 
 enum SubscriptionStatus {
   ACTIVE
-  CANCELLED
-  PAST_DUE
-  UNPAID
+  PAUSED
+  CANCELED
 }
 
 model Review {
