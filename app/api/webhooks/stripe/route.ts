@@ -131,30 +131,55 @@ async function handleSubscriptionCreated(session: Stripe.Checkout.Session) {
         stripeSubId: subscription.id,
         plan: planId.toUpperCase().replace('-', '_') as any,
         status: 'ACTIVE',
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       }
     })
+
+    // Attach Stripe customer id if missing
+    if (!customer.stripeCustomerId && typeof session.customer === 'string') {
+      await prisma.customer.update({
+        where: { id: customer.id },
+        data: { stripeCustomerId: session.customer as string },
+      })
+    }
   }
 
   console.log(`Subscription created for customer ${customer?.email}`)
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const newStatus = subscription.pause_collection
+    ? 'PAUSED'
+    : subscription.status === 'canceled'
+      ? 'CANCELED'
+      : 'ACTIVE'
+
   await prisma.subscription.updateMany({
     where: { stripeSubId: subscription.id },
     data: {
-      status: subscription.status.toUpperCase() as any,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      status: newStatus as any,
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-    }
+    },
   })
+
+  // ensure stripeCustomerId is stored
+  if (typeof subscription.customer === 'string') {
+    await prisma.customer.updateMany({
+      where: {
+        stripeCustomerId: null,
+        subscriptions: {
+          some: { stripeSubId: subscription.id },
+        },
+      },
+      data: { stripeCustomerId: subscription.customer },
+    })
+  }
 }
 
 async function handleSubscriptionCancelled(subscription: Stripe.Subscription) {
   await prisma.subscription.updateMany({
     where: { stripeSubId: subscription.id },
-    data: { status: 'CANCELLED' }
+    data: { status: 'CANCELED' },
   })
 }
 
@@ -163,7 +188,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   if (invoice.subscription) {
     await prisma.subscription.updateMany({
       where: { stripeSubId: invoice.subscription as string },
-      data: { status: 'ACTIVE' }
+      data: { status: 'ACTIVE' },
     })
   }
 }
@@ -173,7 +198,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   if (invoice.subscription) {
     await prisma.subscription.updateMany({
       where: { stripeSubId: invoice.subscription as string },
-      data: { status: 'PAST_DUE' }
+      data: { status: 'PAUSED' },
     })
   }
 }
