@@ -72,7 +72,7 @@ export function AddressAutocomplete({
 
     const debounceTimer = setTimeout(searchPlaces, 300)
     return () => clearTimeout(debounceTimer)
-  }, [input])
+  }, [input, googlePlaces])
 
   const handleSelectSuggestion = async (suggestion: AddressSuggestion) => {
     setInput(suggestion.description)
