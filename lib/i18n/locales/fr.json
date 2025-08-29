@@ -57,11 +57,10 @@
     "balance": "Solde à régler sur place"
   },
   "services": {
-    "interior_premium": "Intérieur Premium",
-    "complete": "Extérieur + Intérieur Complet", 
-    "polish_sealant": "Soft Polish + Sealant",
-    "vtc_zen": "VTC Zen 45min",
-    "sofa_cleaning": "Canapé 3 places"
+    "interieur": "Intérieur Premium",
+    "complet": "Extérieur + Intérieur (Complet)",
+    "polish": "Soft Polish + Sealant",
+    "maison": "Canapé 3 places"
   },
   "validation": {
     "required_field": "Ce champ est obligatoire",

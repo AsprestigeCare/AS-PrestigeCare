@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
-import { validateBookingRules, calculateTotalPrice, getZoneFromPostalCode, DEPOSIT_AMOUNT } from '@/lib/business-logic'
+import { validateBookingRules, calculateTotalPrice, getZoneFromPostalCode, DEPOSIT_AMOUNT, SERVICES } from '@/lib/business-logic'
 import { BookingFormData } from '@/lib/business-logic'
 
 export async function POST(req: NextRequest) {
@@ -36,31 +36,23 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const serviceInfo = SERVICES.find(s => s.id === bookingData.serviceType)
+    if (!serviceInfo) {
+      return NextResponse.json({ error: 'Service not found' }, { status: 400 })
+    }
+
     // Find or create service
     let service = await prisma.service.findFirst({
-      where: { 
-        name: bookingData.serviceType,
-        isActive: true 
+      where: {
+        name: serviceInfo.title,
+        isActive: true
       }
     })
 
     if (!service) {
-      // Create service if it doesn't exist (for demo purposes)
-      const serviceMap = {
-        'INTERIEUR_PREMIUM': { name: 'Intérieur Premium', price: 100, type: 'INTERIEUR', durationMin: 90 },
-        'EXTERIEUR_INTERIEUR_COMPLET': { name: 'Extérieur + Intérieur Complet', price: 220, type: 'EXTERIEUR', durationMin: 180 },
-        'SOFT_POLISH_SEALANT': { name: 'Soft Polish + Sealant', price: 240, type: 'POLISH', durationMin: 240 },
-        'VTC_ZEN_45': { name: 'VTC Zen 45min', price: 35, type: 'INTERIEUR', durationMin: 45 },
-      }
-
-      const serviceInfo = serviceMap[bookingData.serviceType as keyof typeof serviceMap]
-      if (!serviceInfo) {
-        return NextResponse.json({ error: 'Service not found' }, { status: 400 })
-      }
-
       service = await prisma.service.create({
         data: {
-          name: serviceInfo.name,
+          name: serviceInfo.title,
           price: serviceInfo.price,
           type: serviceInfo.type as any,
           durationMin: serviceInfo.durationMin,
